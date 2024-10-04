@@ -1,50 +1,39 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
-org: meetvaghasiyasimform
-# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
-app: first-app
-# "service" is the name of this project. This will also be added to your AWS resource names.
-service: serverless-lambda
-
-stages:
-  default:
-    params:
-      tableName: "users-table-${sls:stage}"
+service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource:
-            - Fn::GetAtt: [UsersTable, Arn]
-  environment:
-    USERS_TABLE: ${param:tableName}
-
+  runtime: nodejs18.x
+  region: us-east-1
+  versionFunctions: true  # Automatically creates versions for Lambda functions
+  logRetentionInDays: 7  # Set CloudWatch log retention
+  tracing:
+      apiGateway: true  # Enable X-Ray tracing for API Gateway (if used)
+      lambda: true      # Enable X-Ray tracing for Lambda functions
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "cloudwatch:PutMetricData"
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+      Resource: "*"
 functions:
-  api:
-    handler: handler.handler
+  myFunction:
+    handler: handler.myFunction
+    memorySize: 256
+    timeout: 30
+    description: 'My Lambda function description'
+    environment:
+      STAGE: ${opt:stage, 'dev'}
+      LOG_LEVEL: ${opt:logLevel, 'info'}
     events:
-      - httpApi: "*"
+      - http:
+          path: invoke
+          method: post
+    tracing: Active
 
-resources:
-  Resources:
-    UsersTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: userId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: userId
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        TableName: ${param:tableName}
+plugins:
+  - serverless-aws-alias-v3 #actual library name is serverless-aws-alias. but it has some error, so this package is wrapper of that with resolved error
+
+#https://www.serverless.com/plugins/serverless-aws-alias#installation
+
