@@ -1,0 +1,16 @@
+# Ignore node_modules except production dependencies
+
+# Ignore test files and directories
+tests/
+test/
+
+# Ignore local configuration files
+.env
+.DS_Store
+*.log
+*.local
+*.test.js
+
+# Ignore documentation and markdown files
+README.md
+docs/
