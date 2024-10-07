@@ -5,11 +5,11 @@ const lambda = new AWS.Lambda({
 
 const invokeLambda = async () => {
   const promises = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 1; i++) {
     const params = {
-      FunctionName: 'first-basic-dev-introWithVersioningAndAlias', 
-      // InvocationType: 'Event',  // for async invocation
-      InvocationType: 'RequestResponse', 
+      FunctionName: 'lambda-email-failure-demo-dev-mainFunction', 
+      InvocationType: 'Event',  // for async invocation
+      // InvocationType: 'RequestResponse', 
       Payload: JSON.stringify({}),
     };
 

@@ -1,46 +1,47 @@
-service: first-basic
+service: lambda-email-failure-demo
 
 provider:
   name: aws
   runtime: nodejs20.x
   region: us-east-1
-  versionFunctions: true  # Automatically creates versions for Lambda functions
-  logRetentionInDays: 7  # Set CloudWatch log retention
   iamRoleStatements:
-    - Effect: "Allow"
+    - Effect: Allow
       Action:
-        - "cloudwatch:PutMetricData"
-        - "logs:CreateLogGroup"
-        - "logs:CreateLogStream"
-        - "logs:PutLogEvents"
-      Resource: "*"
+        - sns:Publish # Keep the permission to publish to SNS
+      Resource:
+        - arn:aws:sns:${self:provider.region}:${aws:accountId}:EmailNotifications # Replace with your SNS topic ARN
 
 functions:
-  introWithVersioningAndAlias:
-    handler: handler.myFunction
-    memorySize: 256
-    timeout: 30
-    description: 'Basic integration with 50% chance for failed and also with versioning and alias'
-    environment:
-      STAGE: ${opt:stage, 'dev'}
-      LOG_LEVEL: ${opt:logLevel, 'info'}
+  mainFunction:
+    handler: handler.main
+    maximumRetryAttempts: 0 # Set the desired maximum retries
     events:
       - http:
-          path: invoke
-          method: post
-    tracing: Active
-    layers:
-      - { Ref: DateUtilsLayerLambdaLayer }  # camelcase name of layer with append LamndaLayer in end
+          path: run
+          method: get
+    onError: !Ref EmailNotificationTopic # Send error notifications to the SNS topic
+    destinations:
+      onFailure:
+        type: sqs # Send failed messages to SQS
+        arn: !GetAtt FailedMessageQueue.Arn # Reference to the SQS queue
 
-layers:
-  DateUtilsLayer:
-    path: layers/date-utils  # The path to your date utility layer's directory
-    description: A utility layer for date and time functions
-    compatibleRuntimes:
-      - nodejs20.x
+resources:
+  Resources:
+    EmailNotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        Subscription:
+          - Endpoint: meet.vaghasiya@simformsolutions.com
+            Protocol: email
+        TopicName: EmailNotifications
 
+    FailedMessageQueue: # Define the SQS queue
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: MyFailedMessagesQueue
 
-plugins:
-  - serverless-aws-alias-v3 # Actual library name is serverless-aws-alias, but it has some error, so this package is a wrapper of that with resolved errors
-
-# https://www.serverless.com/plugins/serverless-aws-alias#installation
+outputs:
+  FailedMessageQueueArn:
+    Value: !GetAtt FailedMessageQueue.Arn
+  EmailNotificationTopicArn:
+    Value: !Ref EmailNotificationTopic
