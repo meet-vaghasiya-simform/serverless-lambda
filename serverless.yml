@@ -1,14 +1,11 @@
-service: my-service
+service: first-basic
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   region: us-east-1
   versionFunctions: true  # Automatically creates versions for Lambda functions
   logRetentionInDays: 7  # Set CloudWatch log retention
-  tracing:
-      apiGateway: true  # Enable X-Ray tracing for API Gateway (if used)
-      lambda: true      # Enable X-Ray tracing for Lambda functions
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -18,11 +15,11 @@ provider:
         - "logs:PutLogEvents"
       Resource: "*"
 functions:
-  myFunction:
+  introWithVersioningAndAlias:
     handler: handler.myFunction
     memorySize: 256
     timeout: 30
-    description: 'My Lambda function description'
+    description: 'Basic integration with 50% chance for failed and also with versoning and alias'
     environment:
       STAGE: ${opt:stage, 'dev'}
       LOG_LEVEL: ${opt:logLevel, 'info'}
