@@ -4,35 +4,27 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject"
+        - "s3:PutObject"
+      Resource: 
+        - !Sub 'arn:aws:s3:::${self:custom.bucketName}/*'
 
 custom:
-  # Define a unique bucket name based on the stage and region
-  bucketName: my-upload-bucket-${opt:stage, 'dev'}  # Bucket name is based on the stage
+  uniqueId: ${opt:uniqueId, 'random-'}${opt:timestamp, '29090909'}  # Unique identifier
+  bucketName: my-upload-bucket-${opt:stage, 'dev'}-${self:custom.uniqueId}  # Updated unique bucket name
 
 functions:
   myFunction:
-    handler: handler.myFunction  # Path to your Lambda function code
-    memorySize: 256               # Adjust memory size as needed
-    timeout: 30                   # Adjust timeout as needed
+    handler: handler.myFunction
+    memorySize: 256
+    timeout: 30
     description: 'My Lambda function triggered by S3 events'
     environment:
-      BUCKET_NAME: ${self:custom.bucketName}  # Pass the bucket name to the function
-    iamRoleStatements:            # IAM permissions for the Lambda function
-      - Effect: "Allow"
-        Action:
-          - "s3:GetObject"
-          - "s3:PutObject"
-        Resource: 
-          - !Sub 'arn:aws:s3:::${self:custom.bucketName}/*'
+      BUCKET_NAME: ${self:custom.bucketName}
     events:
       - s3:
-          bucket: ${self:custom.bucketName}  # Reference to the S3 bucket
-          event: s3:ObjectCreated:*             # Trigger on all object creation events
-          existing: true                        # Indicate that the bucket already exists
-
-resources:
-  Resources:
-    MyUploadBucket:
-      Type: 'AWS::S3::Bucket'
-      Properties:
-        BucketName: ${self:custom.bucketName}  # Set bucket name
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
