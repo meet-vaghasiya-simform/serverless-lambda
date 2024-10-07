@@ -1,25 +1,11 @@
-const logger = require('./logger');
+// handler.js
 
-module.exports.myFunction = async (event) => {
-  const failureChance = Math.random();
-  logger.info('Received request', { event });
+const { getCurrentTime } = require('/opt/nodejs/dateUtils'); // Import the updated function
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if (failureChance < 0.5) {
-        const error = new Error('Random failure occurred');
-        logger.error('Function failed', { error });
-        reject({
-          statusCode: 500,
-          body: JSON.stringify({ message: 'Function failed' }),
-        });
-      } else {
-        logger.info('Function executed successfully');
-        resolve({
-          statusCode: 200,
-          body: JSON.stringify({ message: 'Function executed successfully' }),
-        });
-      }
-    }, 10000); // 10 seconds delay
-  });
+module.exports.hello = async (event) => {
+    const currentTime = getCurrentTime(); // Call the updated function
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Hello from Lambda!', currentTime }),
+    };
 };

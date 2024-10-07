@@ -1,36 +1,20 @@
-service: first-basic
+# serverless.yml
+service: layer-demo
 
 provider:
   name: aws
   runtime: nodejs20.x
-  region: us-east-1
-  versionFunctions: true  # Automatically creates versions for Lambda functions
-  logRetentionInDays: 7  # Set CloudWatch log retention
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action:
-        - "cloudwatch:PutMetricData"
-        - "logs:CreateLogGroup"
-        - "logs:CreateLogStream"
-        - "logs:PutLogEvents"
-      Resource: "*"
+
 functions:
-  introWithVersioningAndAlias:
-    handler: handler.myFunction
-    memorySize: 256
-    timeout: 30
-    description: 'Basic integration with 50% chance for failed and also with versoning and alias'
-    environment:
-      STAGE: ${opt:stage, 'dev'}
-      LOG_LEVEL: ${opt:logLevel, 'info'}
-    events:
-      - http:
-          path: invoke
-          method: post
-    tracing: Active
+  hello:
+    handler: handler.hello
+    layers:
+      - { Ref: DateUtilsLambdaLayer }  # Reference the layer by its name
 
-plugins:
-  - serverless-aws-alias-v3 #actual library name is serverless-aws-alias. but it has some error, so this package is wrapper of that with resolved error
-
-#https://www.serverless.com/plugins/serverless-aws-alias#installation
-
+layers:
+  dateUtils:
+    path: layers/date-utils/
+    name: dateUtils
+    description: A simple utility for getting the current time
+    compatibleRuntimes:
+      - nodejs20.x
