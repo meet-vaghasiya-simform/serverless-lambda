@@ -5,17 +5,20 @@ const lambda = new AWS.Lambda({
 
 const invokeLambda = async () => {
   const promises = [];
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 10; i++) {
     const params = {
-      FunctionName: 'my-service-dev-myFunction', // Replace with your function name
-      InvocationType: 'Event', 
+      FunctionName: 'first-basic-dev-introWithVersioningAndAlias', 
+      // InvocationType: 'Event',  // for async invocation
+      InvocationType: 'RequestResponse', 
       Payload: JSON.stringify({}),
     };
 
     promises.push(
       lambda.invoke(params).promise().then((response) => {
-        if (response.StatusCode === 200) {
-          console.log(`Call ${i + 1}: Success`);
+        if (params.InvocationType === 'Event') {
+          console.log(`Call ${i + 1}: Async invocation initiated ${JSON.stringify(response)} `);
+        } else if (response.StatusCode === 200) {
+          console.log(`Call ${i + 1}: Success ${JSON.stringify(response)}`);
         } else {
           console.log(`Call ${i + 1}: Failed with status ${response.StatusCode} ${JSON.stringify(response)}`);
         }

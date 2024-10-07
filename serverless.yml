@@ -14,12 +14,13 @@ provider:
         - "logs:CreateLogStream"
         - "logs:PutLogEvents"
       Resource: "*"
+
 functions:
   introWithVersioningAndAlias:
     handler: handler.myFunction
     memorySize: 256
     timeout: 30
-    description: 'Basic integration with 50% chance for failed and also with versoning and alias'
+    description: 'Basic integration with 50% chance for failed and also with versioning and alias'
     environment:
       STAGE: ${opt:stage, 'dev'}
       LOG_LEVEL: ${opt:logLevel, 'info'}
@@ -28,9 +29,18 @@ functions:
           path: invoke
           method: post
     tracing: Active
+    layers:
+      - { Ref: DateUtilsLayerLambdaLayer }  # camelcase name of layer with append LamndaLayer in end
+
+layers:
+  DateUtilsLayer:
+    path: layers/date-utils  # The path to your date utility layer's directory
+    description: A utility layer for date and time functions
+    compatibleRuntimes:
+      - nodejs20.x
+
 
 plugins:
-  - serverless-aws-alias-v3 #actual library name is serverless-aws-alias. but it has some error, so this package is wrapper of that with resolved error
+  - serverless-aws-alias-v3 # Actual library name is serverless-aws-alias, but it has some error, so this package is a wrapper of that with resolved errors
 
-#https://www.serverless.com/plugins/serverless-aws-alias#installation
-
+# https://www.serverless.com/plugins/serverless-aws-alias#installation

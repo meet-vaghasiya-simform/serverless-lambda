@@ -1,10 +1,13 @@
 const logger = require('./logger');
-
+const { getCurrentTime } = require('/opt/nodejs/dateUtils');
 module.exports.myFunction = async (event) => {
   const failureChance = Math.random();
   logger.info('Received request', { event });
+  const currentTime = getCurrentTime(); 
 
-  return new Promise((resolve) => {
+  console.log({currentTime})
+
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (failureChance < 0.5) {
         const error = new Error('Random failure occurred');
